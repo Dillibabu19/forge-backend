@@ -8,5 +8,9 @@ class SignInRequest(BaseModel):
     email: EmailStr
     password: str
 
-class AuthResponse(BaseModel):
+class SignUpResponse(BaseModel):
     success: bool
+
+class SignInResponse(BaseModel):
+    success: bool
+    access_token: str

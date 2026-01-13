@@ -7,11 +7,13 @@ from sqlalchemy.orm import Session
 from app.db.deps import get_db
 
 from app.core.exceptions import UserAlreadyExistsError,UserInactiveError,UserNotFoundError,InvalidCredentialsError
-from app.schemas.auth import AuthResponse,SignInRequest,SignUpRequest
+from app.schemas.auth import SignInRequest,SignUpRequest,SignInResponse,SignUpResponse
+
+from app.core.jwt import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/signup",response_model=AuthResponse)
+@router.post("/signup",response_model=SignUpResponse)
 async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
     try:
         AuthService.create_user(db,email=payload.email,password=payload.password)
@@ -19,11 +21,12 @@ async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
     except UserAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User already exists")
     
-@router.post("/login",response_model=AuthResponse)
+@router.post("/login",response_model=SignInResponse)
 async def sign_in_user(payload: SignInRequest,db: Session = Depends(get_db)):
     try:
-        AuthService.authenticate_user(db,email=payload.email,password=payload.password)
-        return {"success": True}
+        user = AuthService.authenticate_user(db,email=payload.email,password=payload.password)
+        access_token = create_access_token(subject=str(user.id))
+        return {"success": True , "access_token":access_token}
     except InvalidCredentialsError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid credentials")
     except UserNotFoundError:
