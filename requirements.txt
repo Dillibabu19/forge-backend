@@ -11,3 +11,5 @@ httpx
 pydantic[email]
 python-jose
 pydantic_settings
+redis>=5.0.0
+requests

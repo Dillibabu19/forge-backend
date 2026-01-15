@@ -16,3 +16,15 @@ class UserInactiveError(AuthError):
 
 class UserAlreadyExistsError(AuthError):
     pass
+
+class TokenError(Exception):
+    """Base class for token-related errors."""
+
+class InvalidToken(TokenError):
+    pass
+
+class TokenAlreadyRevoked(TokenError):
+    pass
+
+class TokenExpired(TokenError):
+    pass

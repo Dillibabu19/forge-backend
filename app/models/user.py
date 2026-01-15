@@ -38,3 +38,5 @@ class User(Base):
         DateTime(timezone=True),
         onupdate=datetime.utcnow,
     )
+
+    refresh_tokens: Mapped[list["RefreshTokens"]] = relationship(back_populates="user",cascade="all, delete-orphan")

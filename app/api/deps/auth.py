@@ -9,9 +9,12 @@ from app.db.deps import get_db
 
 from app.services.user_services import UserService
 
+from app.db.redis import get_redis
+import json
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db), redis = Depends(get_redis)):
     try:
         payload = jwt.decode(token,settings.JWT_SECRET_KEY,algorithms=[settings.JWT_ALGORITHM])
         user_id : str | None = payload.get("sub")
@@ -21,6 +24,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except (JWTError,ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid authentication credentials")
     
+    cache_key = f"user:{user_id}"
+    cached_user = redis.get(cache_key)
+    if cached_user:
+        return json.loads(cached_user)
+    
     user = UserService.get_user_by_id(db,user_id)
 
     if not user:
@@ -28,5 +36,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
+    
+    redis.setex(cache_key,600,json.dumps({'id':user_id,'email':user.email,'is_active':user.is_active}))
     
     return user
