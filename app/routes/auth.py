@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.deps import get_db
 
 from app.core.exceptions import UserAlreadyExistsError,UserInactiveError,UserNotFoundError,InvalidCredentialsError,TokenAlreadyRevoked,TokenExpired,InvalidToken
-from app.schemas.auth import SignInRequest,SignUpRequest,SignInResponse,SignUpResponse,RefreshRequest,RefreshResponse
+from app.schemas.auth import SignInRequest,SignUpRequest,SignInResponse,SignUpResponse,RefreshRequest,RefreshResponse,LogoutRequest,LogoutResponse
 
 from app.core.jwt import create_access_token
 
@@ -47,5 +47,15 @@ async def rotate_token(payload: RefreshRequest,db: Session= Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Token Already Revoked")
     except TokenExpired:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Token Expired")
+    except InvalidToken:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Token")
+    
+@router.post("/logout",response_model=LogoutResponse)
+async def logout_user(payload:LogoutRequest,db:Session=Depends(get_db)):
+    try:
+        AuthService.logout_user_one(db,refresh_token=payload.refresh_token)
+        return {"success": True}
+    except TokenAlreadyRevoked:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Session Already Logged Out")
     except InvalidToken:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Token")
