@@ -30,13 +30,13 @@ class User(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=datetime.now(),
         nullable=False,
     )
 
     updated_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
-        onupdate=datetime.utcnow,
+        onupdate=datetime.now(),
     )
 
     refresh_tokens: Mapped[list["RefreshTokens"]] = relationship(back_populates="user",cascade="all, delete-orphan")

@@ -13,6 +13,8 @@ from app.core.jwt import create_access_token
 
 from app.services.token_service import TokenService
 
+from app.api.deps.rate_limiter import rate_limit_dep
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/signup",response_model=SignUpResponse)
@@ -23,7 +25,7 @@ async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
     except UserAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User already exists")
     
-@router.post("/login",response_model=SignInResponse)
+@router.post("/login",response_model=SignInResponse,dependencies=[Depends(rate_limit_dep)])
 async def sign_in_user(payload: SignInRequest,db: Session = Depends(get_db)):
     try:
         user = AuthService.authenticate_user(db,email=payload.email,password=payload.password)

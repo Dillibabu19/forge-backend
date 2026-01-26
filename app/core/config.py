@@ -6,7 +6,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REDIS_HOST: str
     REDIS_PORT: int
-    REDIS_DB: int
+    REDIS_USER_DB: int
+    REDIS_RL_DB: int
+    RL_WINDOW:int
+    RL_LIMIT:int
 
     class Config:
         extra='ignore'
