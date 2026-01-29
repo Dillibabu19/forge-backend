@@ -115,7 +115,7 @@ Extensible: Built to support RBAC and token rotation incrementally.
 [x] Dockerized Base Infrastructure
 [x] Database & Migration Setup
 [x] Email/Password Signup & Login Flows
-[ ] JWT-based Access Tokens & Refresh Tokens
+[x] JWT-based Access Tokens & Refresh Tokens
 [ ] Role-Based Access Control (RBAC)
 [ ] Background Job Integration (Celery/Redis)
 [ ] Notification Service Infrastructure

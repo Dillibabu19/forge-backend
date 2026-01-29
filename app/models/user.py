@@ -1,6 +1,8 @@
+import uuid
 from datetime import datetime
 from sqlalchemy import Boolean, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Uuid
 from typing import List
 from typing import Optional
 from app.db.session import Base
@@ -8,7 +10,7 @@ from app.db.session import Base
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True,index=True)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(),primary_key=True,index=True,default=uuid.uuid4)
 
     email: Mapped[str] = mapped_column(
         String(255),
@@ -30,13 +32,13 @@ class User(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.now(),
+        default=datetime.now,
         nullable=False,
     )
 
     updated_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
-        onupdate=datetime.now(),
+        onupdate=datetime.now,
     )
 
     refresh_tokens: Mapped[list["RefreshTokens"]] = relationship(back_populates="user",cascade="all, delete-orphan")
