@@ -17,20 +17,21 @@ class TokenService:
         return db.query(RefreshTokens).filter(RefreshTokens.user_id==user_id,RefreshTokens.is_revoked==False,RefreshTokens.expires_at<datetime.now(timezone.utc))
     
     @staticmethod
-    def login_or_rotate_token(db: Session,*,user_id: int) -> str:
+    def login_or_rotate_token(db: Session,*,client_ip:str,user_id: int) -> str:
         existing_tokens = TokenService.get_active_token(db,user_id=user_id)
         for existing_token in existing_tokens:
             existing_token.is_revoked = True
             db.add(existing_token)
-        return TokenService.generate_user_refresh_token(db,user_id=user_id)
+        return TokenService.generate_user_refresh_token(db,client_ip=client_ip,user_id=user_id)
 
     @staticmethod
-    def generate_user_refresh_token(db:Session,*,user_id:int) -> str:
+    def generate_user_refresh_token(db:Session,*,client_ip:str,user_id:int) -> str:
         token = generate_refresh_token(64)
         hashed_token = hash_token(token)
         refresh_token = RefreshTokens(
             user_id=user_id,
             token_hash=hashed_token,
+            ip_address=client_ip,
             expires_at=datetime.now(timezone.utc) + timedelta(days=30)
         )
         db.add(refresh_token)

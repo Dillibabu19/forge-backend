@@ -14,6 +14,8 @@ from app.core.jwt import create_access_token
 from app.services.token_service import TokenService
 
 from app.api.deps.rate_limiter import rate_limit_dep
+from app.api.deps.ip_dep import get_client_ip
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,10 +28,10 @@ async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User already exists")
     
 @router.post("/login",response_model=SignInResponse,dependencies=[Depends(rate_limit_dep)])
-async def sign_in_user(payload: SignInRequest,db: Session = Depends(get_db)):
+async def sign_in_user(payload: SignInRequest,client_ip:str =Depends(get_client_ip) ,db: Session = Depends(get_db)):
     try:
         user = AuthService.authenticate_user(db,email=payload.email,password=payload.password)
-        refresh_token = TokenService.login_or_rotate_token(db,user_id=user.id)
+        refresh_token = TokenService.login_or_rotate_token(db,client_ip=client_ip,user_id=user.id)
         access_token = create_access_token(subject=str(user.id))
         return {"success": True , "access_token":access_token, "refresh_token":refresh_token}
     except InvalidCredentialsError:
