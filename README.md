@@ -35,11 +35,12 @@ The project adheres to strict architectural principles:
 ## 🧱 Current Capabilities
 
 - **Runtime:** Dockerized development environment with Python 3.11.
-- **Persistence:** PostgreSQL database managed via **SQLAlchemy 2.0**.
-- **Migrations:** Full Alembic integration for authoritative schema history.
-- **Identity:** Minimalist User model focused on auth surface area.
-- **Logic:** Service-layer driven workflows with clean error boundaries.
-- **Infrastructure:** Redis integrated for future caching and task queuing.
+- **Persistence:** PostgreSQL with **SQLAlchemy 2.0** ORM.
+- **Migrations:** Authoritative schema history via **Alembic**.
+- **Authentication:** Email/password login with access & refresh tokens.
+- **Session Control:** Refresh token rotation, single-session logout, and global logout.
+- **RBAC Foundation:** Roles modeled at the database level and embedded into JWT claims.
+- **Infrastructure:** Redis integrated for caching and future async workflows.
 
 ---
 
@@ -76,46 +77,78 @@ forge-backend/
 └── Dockerfile
 ```
 
-Running Locally
-Prerequisites
-Docker
+## 🚀 Running Locally
 
-Docker Compose
+### Prerequisites
+- Docker
+- Docker Compose
 
-1. Initialize Environment
-   Copy the example environment file and update values as needed:
+### 1. Initialize Environment
+
+Copy the example environment file and update values as needed:
 
 Bash
 
 ```
-cp .env.example .env 2. Start the Stack
+cp .env.example .env 
+
+```
+### 2. Start the Stack
+
 Build and launch the containers:
 
-```
-
 Bash
 
 ```
-docker compose up -d --build 3. Access the API
-Once running, the interactive documentation is available at:
+docker compose up -d --build
+
 ```
+### 3. Access the API
 
-Swagger UI: http://localhost:8000/docs
-ReDoc: http://localhost:8000/redoc
+Once the stack is running, the API is available locally with interactive documentation:
 
-🔐 Authentication Scope
-The authentication system is designed to be a standalone service:
-Email-based Identity: Primary identifier for users.
-Security: Industry-standard password hashing (Argon2/Bcrypt) and verification.
-Stateless: Planned JWT-based access control (no session coupling).
-Extensible: Built to support RBAC and token rotation incrementally.
+- **Swagger UI:** http://localhost:8000/docs  
+- **ReDoc:** http://localhost:8000/redoc  
 
-🧭 Roadmap
+These interfaces can be used to explore endpoints, inspect schemas, and manually test authentication flows.
 
-[x] Dockerized Base Infrastructure
-[x] Database & Migration Setup
-[x] Email/Password Signup & Login Flows
-[x] JWT-based Access Tokens & Refresh Tokens
-[ ] Role-Based Access Control (RBAC)
-[ ] Background Job Integration (Celery/Redis)
-[ ] Notification Service Infrastructure
+---
+
+## 🔐 Authentication Scope
+
+The authentication system is designed as a **standalone service**:
+
+- **Email-based Identity:** Users are uniquely identified by email.
+- **Security:** Industry-standard password hashing and verification.
+- **Stateless Access:** JWT-based access tokens with refresh token rotation.
+- **Session Control:** Per-session revocation and global logout support.
+- **RBAC:** Role-based access enforced at the service layer and reflected in tokens.
+
+---
+
+## 🧭 Roadmap
+
+- [x] Dockerized Base Infrastructure  
+- [x] Database & Migration Setup  
+- [x] Email/Password Signup & Login  
+- [x] JWT Access Tokens & Refresh Token Rotation  
+- [x] Session Revocation (Single & Global Logout)  
+- [ ] Fine-grained Permissions on top of RBAC  
+- [ ] Background Job Integration (Celery / Redis)  
+- [ ] Notification Service Infrastructure  
+- [ ] Admin / System Management APIs  
+
+---
+
+## 🤝 Open to Collaboration
+
+**forge-backend** is an evolving infrastructure project, and collaboration is welcome.
+
+If you are interested in:
+- Backend architecture
+- Authentication & authorization systems
+- Distributed systems foundations
+- Infra-first backend design
+
+feel free to open issues, propose improvements, or submit pull requests.  
+Thoughtful contributions, design discussions, and code reviews are encouraged.
