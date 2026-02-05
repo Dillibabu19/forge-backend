@@ -152,3 +152,18 @@ If you are interested in:
 
 feel free to open issues, propose improvements, or submit pull requests.  
 Thoughtful contributions, design discussions, and code reviews are encouraged.
+
+Additionally, contributors interested in building a **React-based dashboard**
+(e.g. admin or consumer UI) that acts as a client of forge-backend are
+welcome. The frontend is intentionally scoped as a separate project to maintain
+clear service boundaries, not to limit collaboration.
+
+This is a learning-driven project. If you’re curious about backend systems,
+auth infrastructure, or full-stack architecture and want to build and learn
+together, contributions and discussions are very welcome.
+
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
