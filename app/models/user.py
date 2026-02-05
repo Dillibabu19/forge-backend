@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Boolean, String, DateTime
+from sqlalchemy import Boolean, String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Uuid
 from typing import List
@@ -42,3 +42,7 @@ class User(Base):
     )
 
     refresh_tokens: Mapped[list["RefreshTokens"]] = relationship(back_populates="user",cascade="all, delete-orphan")
+
+    role_id: Mapped[uuid.UUID] = mapped_column(Uuid(),ForeignKey("roles.id"),nullable=True)
+
+    role: Mapped["Roles"] = relationship()

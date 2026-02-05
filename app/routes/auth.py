@@ -1,4 +1,4 @@
-from fastapi import APIRouter,HTTPException,Depends,status
+from fastapi import APIRouter,HTTPException,Depends,status,Request,Response
 
 from app.services.auth_service import AuthService
 
@@ -42,11 +42,20 @@ async def sign_in_user(payload: SignInRequest,client_ip:str =Depends(get_client_
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="User inactive")
     
 @router.post("/refresh",response_model=RefreshResponse)
-async def rotate_token(payload: RefreshRequest,db: Session= Depends(get_db)):
+async def rotate_token(request: Request,response: Response,db: Session = Depends(get_db)):
     try:
-        new_refresh_token,user_id = TokenService.rotate_refresh_token(db, token=payload.refresh_token)
+        new_refresh_token,user_id = TokenService.rotate_refresh_token(db, token=request.cookies.get('refresh_token'))
         new_access_token = create_access_token(subject=str(user_id))
-        return {"success": True,"refresh_token": new_refresh_token,"access_token": new_access_token}
+
+        response.set_cookie(
+            key='refresh_token',
+            value=new_refresh_token,
+            httponly=True,
+            secure=False, #for testing
+            path='/auth/refresh'
+        )
+
+        return {"success": True,"access_token": new_access_token}
     except TokenAlreadyRevoked:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Token Already Revoked")
     except TokenExpired:
@@ -55,11 +64,36 @@ async def rotate_token(payload: RefreshRequest,db: Session= Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Token")
     
 @router.post("/logout",response_model=LogoutResponse)
-async def logout_user(payload:LogoutRequest,db:Session=Depends(get_db)):
+async def logout_user(request: Request, response: Response, db:Session=Depends(get_db)):
     try:
-        AuthService.logout_user_one(db,refresh_token=payload.refresh_token)
+        refresh_token=request.cookies.get('refresh_token')
+        if not refresh_token:
+            raise InvalidToken
+        
+        AuthService.logout_user_one(db,refresh_token=request.cookies.get('refresh_token'))
+
+        response.delete_cookie(
+            key='refresh_token',
+            path='auth/refresh',
+        )
         return {"success": True}
     except TokenAlreadyRevoked:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Session Already Logged Out")
     except InvalidToken:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid Token")
+    
+@router.post("/logout/all",response_model=LogoutResponse)
+async def logout_user_all(request: Request, response: Response, db:Session=Depends(get_db)):
+
+    user = getattr(request.state,"user",None)
+    if user:
+        AuthService.logout_user_all(db,user_id=user.id)
+        return
+    
+    refresh_token = request.cookies.get('refresh_token')
+    if not refresh_token:
+        return
+    
+    user_id = TokenService.get_user_id_from_refresh(db,token=refresh_token)
+    AuthService.logout_user_all(db,user_id=user_id)
+

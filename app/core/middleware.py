@@ -9,6 +9,7 @@ from app.core.config import settings
 class AuthContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request.state.user = None 
+        request.state.user_id = None 
 
         auth_header = request.headers.get("Authorization")
         if auth_header:
@@ -22,6 +23,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
                     )
                     user_id = payload.get("sub")
                     if user_id:
+                        request.state.user_id = user_id 
                         redis = redis_user_client
                         cached = redis.get(f"user:{user_id}")
                         if cached:

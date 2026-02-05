@@ -72,4 +72,9 @@ class TokenService:
         new_refresh_token = TokenService.generate_user_refresh_token(db,user_id=user.id)
 
         return new_refresh_token,user.id
-        
+    
+    @staticmethod
+    def get_user_id_from_refresh(db:Session,*,token:str) -> str:
+        hashed_token = hash_token(token)
+        rec = db.query(RefreshTokens).filter(RefreshTokens.token_hash == hashed_token).first()
+        return rec.user_id

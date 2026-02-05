@@ -75,6 +75,7 @@ def resolve_user_from_token(*,token:str,db:Session,redis):
     data = {
         "id": user.id,
         "email": user.email,
+        "role": user.role.name,
         "is_active": user.is_active,
     }
     redis.setex(cache_key, 600, json.dumps(data))
