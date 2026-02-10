@@ -16,3 +16,6 @@ def rate_limit_dep(request:Request,redis = Depends(get_rl_redis),limit:int = set
             status_code=429,
             detail="Too many requests",
         )
+
+def refresh_token_rate_limit(request: Request, redis = Depends(get_rl_redis)):
+    return rate_limit_dep(request=request,redis=redis,limit=1,window_sec=10)

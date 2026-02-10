@@ -2,6 +2,10 @@ from fastapi import FastAPI,Depends
 from app.routes.auth import router as auth_router
 from app.api.deps.auth import get_current_user
 from app.core.middleware import AuthContextMiddleware
+from app.core.logger import setup_logger
+import app.db.base
+
+setup_logger()
 
 app = FastAPI()
 

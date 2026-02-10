@@ -47,11 +47,10 @@ class TokenService:
     
 
     @staticmethod
-    def rotate_refresh_token(db:Session,*,token:str) -> str:
+    def rotate_refresh_token(db:Session,*,client_ip:str,token:str) -> str:
         hashed_token = hash_token(token)
         print(f"token : {token}, Hashed Token: {hashed_token}")
         rec = db.query(RefreshTokens).filter(RefreshTokens.token_hash == hashed_token).first()
-        print(rec)
 
         if not rec:
             raise InvalidToken()
@@ -69,9 +68,9 @@ class TokenService:
         
         rec.is_revoked = True
         db.add(rec)
-        new_refresh_token = TokenService.generate_user_refresh_token(db,user_id=user.id)
+        new_refresh_token = TokenService.generate_user_refresh_token(db,client_ip=client_ip,user_id=user.id)
 
-        return new_refresh_token,user.id
+        return new_refresh_token,user
     
     @staticmethod
     def get_user_id_from_refresh(db:Session,*,token:str) -> str:

@@ -6,9 +6,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from app.db.session import Base
+from app.models.roles import Roles
 from app.models.user import User
 from app.models.refresh_tokens import RefreshTokens
-from app.models.roles import Roles
 from app.models.permissions import Permissions
 from app.models.role_permissions import RolePermissions
 

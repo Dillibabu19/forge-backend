@@ -14,11 +14,11 @@ class SignUpResponse(BaseModel):
 class SignInResponse(BaseModel):
     success: bool
     access_token: str
-    refresh_token: str
+    # refresh_token: str
     
 class RefreshResponse(BaseModel):
     success: bool
-    refresh_token: str
+    # refresh_token: str
     access_token: str
 
 class RefreshRequest(BaseModel):

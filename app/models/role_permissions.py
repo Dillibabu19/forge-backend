@@ -18,8 +18,8 @@ class RolePermissions(Base):
         ForeignKey("permissions.id",ondelete="CASCADE"),nullable=False
     )
 
-    role: Mapped["Role"] = relationship()
-    permission: Mapped["Permission"] = relationship()
+    role: Mapped["Roles"] = relationship("Roles",viewonly=True)
+    permission: Mapped["Permissions"] = relationship("Permissions", viewonly=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
