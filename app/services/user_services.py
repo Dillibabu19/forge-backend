@@ -9,3 +9,10 @@ class UserService:
         if not user:
             raise UserNotFoundError
         return user
+    
+    @staticmethod
+    def get_user_by_email(db:Session,email:str) -> User:
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise UserNotFoundError
+        return user

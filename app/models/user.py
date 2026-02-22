@@ -46,3 +46,5 @@ class User(Base):
     role_id: Mapped[uuid.UUID] = mapped_column(Uuid(),ForeignKey("roles.id"),nullable=True)
 
     role: Mapped["Roles"] = relationship()
+
+    email_verifications:Mapped[list["EmailVerification"]] = relationship(back_populates="user",cascade="all, delete-orphan")

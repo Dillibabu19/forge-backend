@@ -5,7 +5,7 @@ from app.models.refresh_tokens import RefreshTokens
 from app.services.token_service import TokenService
 from app.models.user import User
 from app.core.security import hash_password,verify_password
-from app.core.refresh_tokens import hash_token
+from app.core.secure_tokens import hash_token
 
 from app.core.exceptions import UserNotFoundError,InvalidCredentialsError,UserInactiveError,UserAlreadyExistsError,InvalidToken,TokenAlreadyRevoked
 
@@ -15,7 +15,7 @@ class AuthService:
         user=User(
             email=email,
             password_hash=hash_password(password),
-            is_active=True
+            is_active=False
         )
         db.add(user)
 

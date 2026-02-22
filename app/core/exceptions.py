@@ -28,3 +28,12 @@ class TokenAlreadyRevoked(TokenError):
 
 class TokenExpired(TokenError):
     pass
+
+class TokenAlreadyUsed(TokenError):
+    pass
+
+class UserExceptions(Exception):
+    """Base class for user-related exceptions"""
+
+class UserAlreadyActive(UserExceptions):
+    pass

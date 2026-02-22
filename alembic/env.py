@@ -11,6 +11,7 @@ from app.models.user import User
 from app.models.refresh_tokens import RefreshTokens
 from app.models.permissions import Permissions
 from app.models.role_permissions import RolePermissions
+from app.models.email_verification import EmailVerification
 
 
 from alembic import context

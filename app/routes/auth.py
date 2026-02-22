@@ -6,14 +6,14 @@ from sqlalchemy.orm import Session
 
 from app.db.deps import get_db
 
-from app.core.exceptions import UserAlreadyExistsError,UserInactiveError,UserNotFoundError,InvalidCredentialsError,TokenAlreadyRevoked,TokenExpired,InvalidToken
+from app.core.exceptions import UserAlreadyExistsError,UserInactiveError,UserNotFoundError,InvalidCredentialsError,TokenAlreadyRevoked,TokenExpired,InvalidToken,UserAlreadyActive,TokenAlreadyUsed
 from app.schemas.auth import SignInRequest,SignUpRequest,SignInResponse,SignUpResponse,RefreshRequest,RefreshResponse,LogoutRequest,LogoutResponse
 
 from app.core.jwt import create_access_token
 
 from app.services.token_service import TokenService
-
 from app.services.user_services import UserService
+from app.services.email_validation_service import EmailValidationService
 
 from app.api.deps.rate_limiter import rate_limit_dep,refresh_token_rate_limit
 from app.api.deps.ip_dep import get_client_ip
@@ -28,7 +28,13 @@ router = APIRouter(prefix="/auth", tags=["auth"],dependencies=[Depends(rate_limi
 @router.post("/signup",response_model=SignUpResponse)
 async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
     try:
-        AuthService.create_user(db,email=payload.email,password=payload.password)
+        user = AuthService.create_user(db,email=payload.email,password=payload.password)
+        # email validae flow
+        email_token = EmailValidationService.generate_email_validation_token(db,user_id=user.id)
+
+        mail_link = f"http://localhost:8000/validate-email?token={email_token}"
+        logger.info(f"Email Validation Url : {mail_link}")
+
         return {"success": True}
     except UserAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User already exists")
@@ -36,10 +42,10 @@ async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
 @router.post("/login",response_model=SignInResponse)
 async def sign_in_user(payload: SignInRequest,response:Response,client_ip:str =Depends(get_client_ip) ,db: Session = Depends(get_db)):
     logger.info(f"Login Request Received",extra={"email": payload.email, "ip": client_ip})
+    user = None
     try:
         user = AuthService.authenticate_user(db,email=payload.email,password=payload.password)
         refresh_token = TokenService.login_or_rotate_token(db,client_ip=client_ip,user_id=user.id)
-        logger.debug(f"------",user.role)
         access_token = create_access_token(subject=str(user.id),role=user.role.name)
         response.set_cookie(
             key='refresh_token',
@@ -58,6 +64,9 @@ async def sign_in_user(payload: SignInRequest,response:Response,client_ip:str =D
     except UserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="User not found")
     except UserInactiveError:
+        user = UserService.get_user_by_email(db,email=payload.email)
+        email_token = EmailValidationService.generate_email_validation_token(db,user_id=user.id)
+        logger.debug(f"Verify using this link - http://localhost:8000/auth/verify-email?token={email_token}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="User inactive")
     
 @router.post("/refresh",response_model=RefreshResponse,dependencies=[Depends(refresh_token_rate_limit)])
@@ -117,3 +126,34 @@ async def logout_user_all(request: Request, response: Response, db:Session=Depen
     user_id = TokenService.get_user_id_from_refresh(db,token=refresh_token)
     AuthService.logout_user_all(db,user_id=user_id)
 
+
+@router.get("/resend-email-verification")
+async def resen_verification_email(user_id: str,db: Session = Depends(get_db)):
+    try:
+        email_token = EmailValidationService.generate_email_validation_token(db,user_id=user_id)
+
+        mail_link = f"http://localhost:8000/auth/verify-email?token={email_token}"
+        logger.info(f"Email Validation Url : {mail_link}")
+    except Exception:
+        raise
+
+    pass
+
+@router.get("/verify-email")
+async def validate_email(token: str, db: Session = Depends(get_db)):
+    try:
+        EmailValidationService.validate_email_token(db, token=token)
+        logger.debug(f"User validated successfully - {token}")
+        return {"message": "Email verified successfully"}
+
+    except (InvalidToken, TokenExpired):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification link"
+        )
+
+    except TokenAlreadyUsed:
+        return {"message": "Email already verified"}
+
+    except UserAlreadyActive:
+        return {"message": "Email already verified"}

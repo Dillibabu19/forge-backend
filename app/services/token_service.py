@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models.refresh_tokens import RefreshTokens
 from app.models.user import User
 
-from app.core.refresh_tokens import generate_refresh_token,hash_token
+from app.core.secure_tokens import generate_secure_token,hash_token
 
 from datetime import datetime,timedelta,timezone
 
@@ -26,7 +26,7 @@ class TokenService:
 
     @staticmethod
     def generate_user_refresh_token(db:Session,*,client_ip:str,user_id:int) -> str:
-        token = generate_refresh_token(64)
+        token = generate_secure_token(64)
         hashed_token = hash_token(token)
         refresh_token = RefreshTokens(
             user_id=user_id,
