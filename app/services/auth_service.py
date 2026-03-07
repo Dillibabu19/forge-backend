@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models.refresh_tokens import RefreshTokens
 from app.services.token_service import TokenService
 from app.models.user import User
+from app.models.roles import Roles,RoleType
 from app.core.security import hash_password,verify_password
 from app.core.secure_tokens import hash_token
 
@@ -12,10 +13,12 @@ from app.core.exceptions import UserNotFoundError,InvalidCredentialsError,UserIn
 class AuthService:
     @staticmethod
     def create_user(db:Session,*,email:str,password:str) -> User:
+        role = db.query(Roles).filter(Roles.name == RoleType.USER).first()
         user=User(
             email=email,
             password_hash=hash_password(password),
-            is_active=False
+            is_active=False,
+            role_id = role.id
         )
         db.add(user)
 

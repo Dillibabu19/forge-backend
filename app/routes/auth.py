@@ -32,7 +32,7 @@ async def sign_up_user(payload: SignUpRequest,db: Session = Depends(get_db)):
         # email validae flow
         email_token = EmailValidationService.generate_email_validation_token(db,user_id=user.id)
 
-        mail_link = f"http://localhost:8000/validate-email?token={email_token}"
+        mail_link = f"http://localhost:8000/auth/verify-email?token={email_token}"
         logger.info(f"Email Validation Url : {mail_link}")
 
         return {"success": True}
