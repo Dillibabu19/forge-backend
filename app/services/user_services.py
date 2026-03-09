@@ -3,6 +3,9 @@ from app.models.user import User
 from app.models.roles import Roles
 from app.core.exceptions import UserNotFoundError
 
+from app.schemas.user import UserUpdate
+import uuid
+
 class UserService:
     @staticmethod
     def get_user_by_id(db:Session, id: int) -> User:
@@ -33,3 +36,26 @@ class UserService:
             })
 
         return users
+    
+    @staticmethod
+    def update_user(db: Session,user_id: uuid.UUID, user_data: UserUpdate):
+        user = UserService.get_user_by_id(db,id=user_id)
+        if not user:
+            return UserNotFoundError
+        
+        for field, value in user_data.model_dump(exclude_unset=True).items():
+            setattr(user, field, value)
+
+        db.commit()
+        db.refresh(user)
+
+        return user
+
+    @staticmethod
+    def delete_user(db: Session,user_id: uuid.UUID):
+        user = UserService.get_user_by_id(db,id=user_id)
+        if not user:
+            return UserNotFoundError
+        db.delete(user)
+        db.commit()
+        return user
